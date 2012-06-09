@@ -2719,9 +2719,9 @@ public class StorageService implements IEndpointStateChangeSubscriber, StorageSe
         Collections.sort(sortedTokens);
         Map<Token, Float> token_map = getPartitioner().describeOwnership(sortedTokens);
         Map<String, Float> string_map = new HashMap<String, Float>();
-        for(Map.Entry<Token, Float> entry : token_map.entrySet())
+        for(Token t : token_map.keySet())
         {
-            string_map.put(entry.getKey().toString(), entry.getValue());
+            string_map.put(t.toString(), token_map.get(t));
         }
         return string_map;
     }
@@ -2741,10 +2741,11 @@ public class StorageService implements IEndpointStateChangeSubscriber, StorageSe
         Collections.sort(sortedTokens);
         Map<Token, Float> ownership = getPartitioner().describeOwnership(sortedTokens);
 
-        for (Entry<InetAddress, Collection<Range<Token>>> ranges : constructEndpointToRangeMap(keyspace).entrySet())
+        Map<InetAddress, Collection<Range<Token>>> endpointToRangeMap = constructEndpointToRangeMap(keyspace);
+        for (InetAddress endpoint : endpointToRangeMap.keySet())
         {
-            Token token = tokenMetadata.getToken(ranges.getKey());
-            for (Range<Token> range: ranges.getValue())
+            Token token = tokenMetadata.getToken(endpoint);
+            for (Range<Token> range : endpointToRangeMap.get(endpoint))
             {
                 float value = effective.get(token.toString()) == null ? 0.0F : effective.get(token.toString());
                 effective.put(token.toString(), value + ownership.get(range.left));

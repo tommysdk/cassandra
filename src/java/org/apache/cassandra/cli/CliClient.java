@@ -1671,9 +1671,9 @@ public class CliClient
             final StringBuilder opts = new StringBuilder();
             opts.append("{");
             String prefix = "";
-            for (Map.Entry<String, String> opt : ksDef.strategy_options.entrySet())
+            for (String opt : ksDef.strategy_options.keySet())
             {
-                opts.append(prefix + CliUtils.escapeSQLString(opt.getKey()) + " : " + CliUtils.escapeSQLString(opt.getValue()));
+                opts.append(prefix).append(CliUtils.escapeSQLString(opt)).append(" : ").append(CliUtils.escapeSQLString(ksDef.strategy_options.get(opt)));
                 prefix = ", ";
             }
             opts.append("}");
@@ -1685,7 +1685,7 @@ public class CliClient
         output.append(";").append(NEWLINE);
         output.append(NEWLINE);
 
-        output.append("use " + ksDef.name + ";");
+        output.append("use ").append(ksDef.name).append(";");
         output.append(NEWLINE);
         output.append(NEWLINE);
 
@@ -1738,9 +1738,9 @@ public class CliClient
 
             int i = 0, size = options.size();
 
-            for (Map.Entry<String, String> entry : options.entrySet())
+            for (String key : options.keySet())
             {
-                cOptions.append(CliUtils.quote(entry.getKey())).append(" : ").append(CliUtils.quote(entry.getValue()));
+                cOptions.append(CliUtils.quote(key)).append(" : ").append(CliUtils.quote(options.get(key)));
 
                 if (i != size - 1)
                     cOptions.append(", ");
@@ -1782,9 +1782,9 @@ public class CliClient
 
             int i = 0, size = cfDef.compression_options.size();
 
-            for (Map.Entry<String, String> entry : cfDef.compression_options.entrySet())
+            for (String key : cfDef.compression_options.keySet())
             {
-                compOptions.append(CliUtils.quote(entry.getKey())).append(" : ").append(CliUtils.quote(entry.getValue()));
+                compOptions.append(CliUtils.quote(key)).append(" : ").append(CliUtils.quote(cfDef.compression_options.get(key)));
 
                 if (i != size - 1)
                     compOptions.append(", ");
@@ -1830,13 +1830,15 @@ public class CliClient
                 output.append(",").append(NEWLINE);
                 output.append(TAB + TAB + "index_options : {" + NEWLINE);
                 int numOpts = colDef.index_options.size();
-                for (Map.Entry<String, String> entry : colDef.index_options.entrySet())
+                for (String key : colDef.index_options.keySet())
                 {
-                    String option = CliUtils.escapeSQLString(entry.getKey());
-                    String optionValue = CliUtils.escapeSQLString(entry.getValue());
+                    String option = CliUtils.escapeSQLString(key);
+                    String optionValue = CliUtils.escapeSQLString(colDef.index_options.get(key));
 
                     output.append(TAB + TAB + TAB)
-                          .append("'" + option + "' : '")
+                          .append("'")
+                          .append(option)
+                          .append("' : '")
                           .append(optionValue)
                           .append("'");
 
@@ -2126,15 +2128,15 @@ public class CliClient
         if (!cf_def.compaction_strategy_options.isEmpty())
         {
             sessionState.out.println("      Compaction Strategy Options:");
-            for (Map.Entry<String, String> e : cf_def.compaction_strategy_options.entrySet())
-                sessionState.out.printf("        %s: %s%n", e.getKey(), e.getValue());
+            for (String k : cf_def.compaction_strategy_options.keySet())
+                sessionState.out.printf("        %s: %s%n", k, cf_def.compaction_strategy_options.get(k));
         }
 
         if (cf_def.compression_options != null && !cf_def.compression_options.isEmpty())
         {
             sessionState.out.println("      Compression Options:");
-            for (Map.Entry<String, String> e : cf_def.compression_options.entrySet())
-                sessionState.out.printf("        %s: %s%n", e.getKey(), e.getValue());
+            for (String k : cf_def.compression_options.keySet())
+                sessionState.out.printf("        %s: %s%n", k, cf_def.compression_options.get(k));
         }
     }
 

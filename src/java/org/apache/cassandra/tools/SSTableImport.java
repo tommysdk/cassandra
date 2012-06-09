@@ -289,18 +289,18 @@ public class SSTableImport
             decoratedKeys.put(partitioner.decorateKey(hexToBytes(key)), key);
         }
 
-        for (Map.Entry<DecoratedKey, String> rowKey : decoratedKeys.entrySet())
+        for (DecoratedKey rowKey : decoratedKeys.keySet())
         {
             if (columnFamily.getType() == ColumnFamilyType.Super)
             {
-                addToSuperCF((Map<?, ?>) data.get(rowKey.getValue()), columnFamily);
+                addToSuperCF((Map<?, ?>) data.get(decoratedKeys.get(rowKey)), columnFamily);
             }
             else
             {
-                addToStandardCF((List<?>) data.get(rowKey.getValue()), columnFamily);
+                addToStandardCF((List<?>) data.get(decoratedKeys.get(rowKey)), columnFamily);
             }
 
-            writer.append(rowKey.getKey(), columnFamily);
+            writer.append(rowKey, columnFamily);
             columnFamily.clear();
 
             importedKeys++;
