@@ -17,6 +17,7 @@
  */
 package org.apache.cassandra.db;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +56,7 @@ class MeteredFlusher implements Runnable
                                                   / (1 + cfs.indexManager.getIndexedColumns().size()));
                 if (size > (DatabaseDescriptor.getTotalMemtableSpaceInMB() * 1048576L - flushingBytes) / maxInFlight)
                 {
-                    logger.info("flushing high-traffic column family {} (estimated {} bytes)", cfs, size);
+                    logger.info("flushing high-traffic column family {} (estimated {} bytes)", cfs, format(size));
                     cfs.forceFlush();
                 }
                 else
@@ -67,7 +68,7 @@ class MeteredFlusher implements Runnable
             if (flushingBytes + liveBytes <= DatabaseDescriptor.getTotalMemtableSpaceInMB() * 1048576L)
                 return;
 
-            logger.info("estimated {} bytes used by all memtables pre-flush", liveBytes);
+            logger.info("estimated {} bytes used by all memtables pre-flush", format(liveBytes));
 
             // sort memtables by size
             List<ColumnFamilyStore> sorted = new ArrayList<ColumnFamilyStore>();
@@ -97,14 +98,24 @@ class MeteredFlusher implements Runnable
 
                 ColumnFamilyStore cfs = sorted.remove(sorted.size() - 1);
                 long size = cfs.getTotalMemtableLiveSize();
-                logger.info("flushing {} to free up {} bytes", cfs, size);
+                logger.info("flushing {} to free up {} bytes", cfs, format(size));
                 liveBytes -= size;
                 cfs.forceFlush();
             }
         }
         finally
         {
-            logger.trace("memtable memory usage is {} bytes with {} live", liveBytes + flushingBytes, liveBytes);
+            logger.trace("memtable memory usage is {} bytes with {} live", format(liveBytes + flushingBytes), liveBytes);
+        }
+    }
+
+    private static String format(final Long size) {
+        if (size == null) return "?";
+        try {
+            return MessageFormat.format("{0}", size);
+        } catch (IllegalArgumentException iae) {
+            logger.warn("Failed to format long value for logging purposes: " + size, iae);
+            return size.toString();
         }
     }
 
